@@ -133,7 +133,8 @@ def main() -> None:
         if name not in pins:
             sys.exit(f"FetchContent dependency '{name}' is no longer declared by OpenMS; update FETCHCONTENT_DEPS")
         repo, tag = pins[name]
-        r_url = f"{repo}/archive/{tag}.tar.gz"
+        ref = tag if re.fullmatch(r"[0-9a-f]{40}", tag) else f"refs/tags/{tag}"
+        r_url = f"{repo}/archive/{ref}.tar.gz"
         res += [f'resource "{name}" do', f'  url "{r_url}"', f'  sha256 "{sha256_of(r_url)}"', "end", ""]
 
     model_url = cmake_set(lib, "OPENMS_PEPTDEEP_MODEL_URL").replace("http://", "https://", 1)

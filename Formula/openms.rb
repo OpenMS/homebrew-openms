@@ -36,22 +36,22 @@ class Openms < Formula
   # here keeps the build offline and reproducible (required for homebrew-core).
   # BEGIN nightly-resources (managed by .github/scripts/bump-nightly.py)
   resource "opentims" do
-    url "https://github.com/michalsta/opentims/archive/v1.2.0b4.tar.gz"
+    url "https://github.com/michalsta/opentims/archive/refs/tags/v1.2.0b4.tar.gz"
     sha256 "f722dd4c4c4e6d1db31fb649c621da5daa2707d0dac716bf2618a0f5dd5c58e8"
   end
 
   resource "pylmcf" do
-    url "https://github.com/michalsta/pylmcf/archive/v0.9.8.tar.gz"
+    url "https://github.com/michalsta/pylmcf/archive/refs/tags/v0.9.8.tar.gz"
     sha256 "4be32d9aadc6f7deab64bd0fede04d936f581eca758d2330ac08c86a7ffcce87"
   end
 
   resource "wnet" do
-    url "https://github.com/michalsta/wnet/archive/v0.9.11.tar.gz"
+    url "https://github.com/michalsta/wnet/archive/refs/tags/v0.9.11.tar.gz"
     sha256 "3f5b91ecdb8c51276710007e1f8717d2bd897375f939699d6df147f2122d8c13"
   end
 
   resource "wnetalign" do
-    url "https://github.com/michalsta/wnetalign/archive/v0.9.8.tar.gz"
+    url "https://github.com/michalsta/wnetalign/archive/refs/tags/v0.9.8.tar.gz"
     sha256 "26b270b483b71a195a96afd7a86c93100cbc500dff818a9baf7dd2e94354cde0"
   end
 
@@ -89,7 +89,7 @@ class Openms < Formula
       -DFETCHCONTENT_FULLY_DISCONNECTED=ON
       -DWITH_GUI=OFF
       -DWITH_ONNX=ON
-      -DONNXRuntime_INCLUDE_DIR=#{Formula["onnxruntime"].opt_include}/onnxruntime
+      -DONNXRuntime_INCLUDE_DIR=#{formula_opt_include("onnxruntime")}/onnxruntime
       -DWITH_OPENTIMS=ON
       -DWITH_THERMO_RAW=OFF
       -DLP_SOLVER=HIGHS
@@ -105,7 +105,7 @@ class Openms < Formula
       -DENABLE_PIPELINE_TESTING=OFF
       -DCMAKE_INSTALL_RPATH=#{rpath}
     ] + fetchcontent_args
-    args << "-DOpenMP_ROOT=#{Formula["libomp"].opt_prefix}" if OS.mac?
+    args << "-DOpenMP_ROOT=#{formula_opt_prefix("libomp")}" if OS.mac?
     args += ccache_args
 
     system "cmake", "-S", ".", "-B", "build", *args, *std_cmake_args
