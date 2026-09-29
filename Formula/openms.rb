@@ -114,8 +114,8 @@ class Openms < Formula
     system "cmake", "--build", "build"
     system "cmake", "--install", "build"
 
-    # OpenMS copies libonnxruntime next to libOpenMS; use Homebrew's instead.
-    rm Dir[lib/shared_library("libonnxruntime", "*"), lib/shared_library("libonnxruntime")]
+    # OpenMS may copy libonnxruntime next to libOpenMS; use Homebrew's instead.
+    rm Dir[lib/"libonnxruntime*"]
   end
 
   # Opt-in compiler cache for this tap's CI (see .github/workflows/tests.yml).
