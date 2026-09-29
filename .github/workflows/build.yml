@@ -144,3 +144,5 @@ jobs:
         with:
           name: bottles_${{ matrix.os }}
           path: '*.bottle.*'
+          # test-bot ignores some failed steps outside pull requests; no bottle means failure.
+          if-no-files-found: error

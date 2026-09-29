@@ -22,12 +22,14 @@ class Openms < Formula
   depends_on "libzip"
   depends_on "nlohmann-json"
   depends_on "onnxruntime"
+  depends_on "sqlitecpp"
   depends_on "xerces-c"
   depends_on "zstd"
 
   uses_from_macos "bzip2"
   uses_from_macos "curl"
   uses_from_macos "libxml2"
+  uses_from_macos "sqlite"
   uses_from_macos "zlib"
 
   on_macos do
@@ -95,6 +97,8 @@ class Openms < Formula
       -DWITH_OPENTIMS=ON
       -DWITH_THERMO_RAW=OFF
       -DLP_SOLVER=HIGHS
+      -DARROW_USE_STATIC=OFF
+      -DUSE_EXTERNAL_SQLITECPP=ON
       -DPYOPENMS=OFF
       -DENABLE_DOCS=OFF
       -DENABLE_TDL=OFF
@@ -140,13 +144,18 @@ class Openms < Formula
       assert_path_exists share/"OpenMS/models"/model
     end
 
-    (testpath/"test.mzML").write <<~XML
-      <?xml version="1.0" encoding="UTF-8"?>
-      <mzML xmlns="http://psi.hupo.org/ms/mzml" version="1.1.0">
-        <cvList count="1"><cv id="MS" fullName="PSI-MS" URI="https://purl.obolibrary.org/obo/ms.obo"/></cvList>
-        <run id="r"><spectrumList count="0" defaultDataProcessingRef="dp"/></run>
-      </mzML>
-    XML
-    assert_match "Number of spectra: 0", shell_output("#{bin}/FileInfo -in test.mzML")
+    (testpath/"test.mgf").write <<~EOS
+      BEGIN IONS
+      TITLE=test
+      PEPMASS=500.25
+      CHARGE=2+
+      RTINSECONDS=60
+      100.1 10
+      200.2 20
+      300.3 30
+      END IONS
+    EOS
+    system bin/"FileConverter", "-in", "test.mgf", "-out", "test.mzML"
+    assert_match "Number of spectra: 1", shell_output("#{bin}/FileInfo -in test.mzML")
   end
 end
