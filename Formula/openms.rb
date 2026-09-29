@@ -15,8 +15,10 @@ class Openms < Formula
 
   depends_on "cmake" => :build
   depends_on "apache-arrow"
+  depends_on "boost"
   depends_on "eigen"
   depends_on "highs"
+  depends_on "libsvm"
   depends_on "libzip"
   depends_on "nlohmann-json"
   depends_on "onnxruntime"
