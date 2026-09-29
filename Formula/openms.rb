@@ -22,6 +22,7 @@ class Openms < Formula
   depends_on "libzip"
   depends_on "nlohmann-json"
   depends_on "onnxruntime"
+  depends_on "sqlite"
   depends_on "sqlitecpp"
   depends_on "xerces-c"
   depends_on "zstd"
@@ -29,11 +30,13 @@ class Openms < Formula
   uses_from_macos "bzip2"
   uses_from_macos "curl"
   uses_from_macos "libxml2"
-  uses_from_macos "sqlite"
-  uses_from_macos "zlib"
 
   on_macos do
     depends_on "libomp"
+  end
+
+  on_linux do
+    depends_on "zlib-ng-compat"
   end
 
   # Everything below is fetched by OpenMS' CMake at configure time. Pinning it
