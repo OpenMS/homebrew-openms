@@ -1,0 +1,146 @@
+# Builds and tests bottles with `brew test-bot`, exactly like Homebrew does,
+# plus a persistent ccache so nightly rebuilds only recompile what changed.
+name: build bottles
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: Tap commit to build (defaults to the triggering commit)
+        type: string
+        default: ""
+      formulae:
+        description: Space-separated formulae to build (default - detect changed formulae like Homebrew CI)
+        type: string
+        default: ""
+      save-cache:
+        description: Save the compiler cache (only from default-branch contexts, so all runs can restore it)
+        type: boolean
+        default: false
+
+permissions: {}
+
+defaults:
+  run:
+    shell: bash -xeuo pipefail {0}
+
+env:
+  CCACHE_VERSION: 4.14.1
+  HOMEBREW_NO_INSTALL_CLEANUP: 1
+
+jobs:
+  test-bot:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-26
+            ccache-asset: darwin
+            ccache-sha256: c279fa81e2e806b4d9e64d4a06cb569a84ef54151feef796e5d4f4e95a464563
+          - os: ubuntu-latest
+            container:
+              image: ghcr.io/homebrew/brew:main
+              options: --privileged
+            ccache-asset: linux-x86_64-musl-static
+            ccache-sha256: 8f684cf82a7acd2f1daddbefcda505c499afe8245cfbfe78f751ce389cd6df52
+    runs-on: ${{ matrix.os }}
+    container: ${{ fromJSON(toJSON(matrix.container)) }} # zizmor: ignore[unpinned-images]
+    timeout-minutes: 360
+    permissions:
+      actions: read
+      checks: read
+      contents: read
+      packages: read
+      pull-requests: read
+    steps:
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@1e34f2e2acaa766b7efacb8c26352e6abbb023f9 # 2026.09.13.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check out requested tap commit
+        if: inputs.ref != ''
+        working-directory: ${{ steps.set-up-homebrew.outputs.repository-path }}
+        env:
+          REF: ${{ inputs.ref }}
+        run: |
+          git fetch origin "$REF"
+          git checkout --force -B main FETCH_HEAD
+
+      - name: Cache Homebrew Bundler RubyGems
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.set-up-homebrew.outputs.gems-path }}
+          key: ${{ matrix.os }}-rubygems-${{ steps.set-up-homebrew.outputs.gems-hash }}
+          restore-keys: ${{ matrix.os }}-rubygems-
+
+      - run: brew test-bot --only-cleanup-before
+
+      - run: brew test-bot --only-setup
+
+      # The formula picks these up via HOMEBREW_OPENMS_CCACHE*; the cache lives
+      # under HOMEBREW_CACHE because the macOS build sandbox allows writes there.
+      - name: Set up ccache
+        id: ccache
+        env:
+          ASSET: ${{ matrix.ccache-asset }}
+          SHA256: ${{ matrix.ccache-sha256 }}
+        run: |
+          root="$(brew --cache)/openms-ccache"
+          mkdir -p "$root/bin" "$root/cache"
+          curl -fsSL -o "$RUNNER_TEMP/ccache.tar.gz" \
+            "https://github.com/ccache/ccache/releases/download/v${CCACHE_VERSION}/ccache-${CCACHE_VERSION}-${ASSET}.tar.gz"
+          echo "$SHA256  $RUNNER_TEMP/ccache.tar.gz" | shasum -a 256 -c -
+          tar -xzf "$RUNNER_TEMP/ccache.tar.gz" -C "$root/bin" --strip-components=1 "ccache-${CCACHE_VERSION}-${ASSET}/ccache"
+          {
+            echo "HOMEBREW_OPENMS_CCACHE=$root/bin/ccache"
+            echo "HOMEBREW_OPENMS_CCACHE_DIR=$root/cache"
+            echo "CCACHE_DIR=$root/cache"
+          } >> "$GITHUB_ENV"
+          echo "dir=$root/cache" >> "$GITHUB_OUTPUT"
+
+      - name: Restore ccache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.ccache.outputs.dir }}
+          key: ccache-${{ matrix.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: ccache-${{ matrix.os }}-
+
+      - run: '"${HOMEBREW_OPENMS_CCACHE}" --zero-stats'
+
+      - name: Base64-encode GITHUB_TOKEN for HOMEBREW_DOCKER_REGISTRY_TOKEN
+        id: base64-encode
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          base64_token=$(echo -n "${TOKEN}" | base64 | tr -d "\n")
+          echo "::add-mask::${base64_token}"
+          echo "token=${base64_token}" >> "${GITHUB_OUTPUT}"
+
+      - name: brew test-bot --only-formulae
+        env:
+          HOMEBREW_DOCKER_REGISTRY_TOKEN: ${{ steps.base64-encode.outputs.token }}
+          FORMULAE: ${{ inputs.formulae }}
+        run: |
+          # shellcheck disable=SC2086
+          brew test-bot --only-formulae --root-url=https://ghcr.io/v2/openms/openms $FORMULAE
+
+      - name: ccache statistics
+        if: always()
+        run: '"${HOMEBREW_OPENMS_CCACHE}" --show-stats --verbose || true'
+
+      # Saved even when the build fails, so the next attempt resumes where this one stopped.
+      - name: Save ccache
+        if: always() && inputs.save-cache
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.ccache.outputs.dir }}
+          key: ccache-${{ matrix.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Upload bottles as artifact
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: bottles_${{ matrix.os }}
+          path: '*.bottle.*'
