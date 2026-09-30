@@ -2,22 +2,15 @@ class Openms < Formula
   desc "C++ library and command-line tools (TOPP) for LC-MS/MS data analysis"
   homepage "https://openms.de/"
   # BEGIN nightly-source (managed by .github/scripts/bump-nightly.py)
-  url "https://github.com/OpenMS/OpenMS/archive/088f8ac670d6d2b357f4c822dbc74700cfc37452.tar.gz"
-  version "3.6.0-pre.20260928"
-  sha256 "acc1adf0d24f55a4f42d28cf57569e7e81be99e33d915c35f69aed250f8201ab"
+  url "https://github.com/OpenMS/OpenMS/archive/55f7bdb0ccabd3f1ef9c9aa04bb66ada6e2067a0.tar.gz"
+  version "3.6.0-pre.20260929"
+  sha256 "c021ba891e9b39d3233eeb21489fe01536385819617c58d307c53d92d5e6fa57"
   # END nightly-source
   license "BSD-3-Clause"
   head "https://github.com/OpenMS/OpenMS.git", branch: "develop"
 
   livecheck do
     skip "Pinned to the OpenMS nightly branch by .github/workflows/nightly.yml"
-  end
-
-  bottle do
-    root_url "https://ghcr.io/v2/openms/openms"
-    rebuild 1
-    sha256               arm64_tahoe:  "9abfb7398f7b62b497924698836560ed5d991f2cc1dcb8fa1cd54ccddf0ef00e"
-    sha256 cellar: :any, x86_64_linux: "a2011b457f44ce71e0ef361789a12147c116b8b14a78e19c5c773dbc8db398d9"
   end
 
   depends_on "cmake" => :build
