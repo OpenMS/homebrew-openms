@@ -15,9 +15,9 @@ class Libopenms < Formula
 
   bottle do
     root_url "https://ghcr.io/v2/openms/openms"
-    rebuild 1
-    sha256 arm64_tahoe:  "11646ef61f3020fd84dd74aebacfd4b9f57ee94603976d0e05a5cc17a6425d45"
-    sha256 x86_64_linux: "316faec0049bca6ac686e7158ea953c5e351f635a4611d0d77e98ac77ca9dc32"
+    rebuild 2
+    sha256 arm64_tahoe:  "023f1771a8e78ace0c4e9f83b4f61dfedb4358cec1321ce4507018a285539035"
+    sha256 x86_64_linux: "89d0292388cdabd1e38e055d589c023ef425e5cf1cf5c18a7d122f62c4599ef2"
   end
 
   depends_on "cmake" => [:build, :test]
