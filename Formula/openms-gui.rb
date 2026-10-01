@@ -15,9 +15,9 @@ class OpenmsGui < Formula
 
   bottle do
     root_url "https://ghcr.io/v2/openms/openms"
-    rebuild 2
-    sha256 cellar: :any, arm64_tahoe:  "f09663bf5f4c144a09b76ad4a27329dea12f9968b30685f7c0a614b01e99bd2c"
-    sha256 cellar: :any, x86_64_linux: "6374476413484fcc89edd8cd8ff4d047136abc1a7a5936bd5d4ac12a0ffdcef1"
+    rebuild 3
+    sha256 cellar: :any, arm64_tahoe:  "b908e0eb7f05746c96b71538b6b46849c337dcfe7da2999bf4d38389a5bc0e1d"
+    sha256 cellar: :any, x86_64_linux: "1b09b3993a20837fd62f4d16b4457be49a88c0a35f2f275c825e67ebfca3e5c2"
   end
 
   # Built against libopenms, which must come from the very same source tarball.
