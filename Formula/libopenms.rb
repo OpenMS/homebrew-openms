@@ -13,10 +13,6 @@ class Libopenms < Formula
     skip "Pinned to the OpenMS nightly branch by .github/workflows/nightly.yml"
   end
 
-  # Replaces the library part of the earlier all-in-one `openms` formula.
-  link_overwrite "include/OpenMS/*", "include/OpenSwathAlgo/*", "lib/libOpenMS*", "lib/libOpenSwathAlgo*"
-  link_overwrite "lib/cmake/OpenMS/*", "share/OpenMS/*"
-
   depends_on "cmake" => :build
   depends_on "apache-arrow"
   depends_on "boost"
@@ -42,6 +38,10 @@ class Libopenms < Formula
   on_linux do
     depends_on "zlib-ng-compat"
   end
+
+  # Replaces the library part of the earlier all-in-one `openms` formula.
+  link_overwrite "include/OpenMS/*", "include/OpenSwathAlgo/*", "lib/libOpenMS*", "lib/libOpenSwathAlgo*"
+  link_overwrite "lib/cmake/OpenMS/*", "share/OpenMS/*"
 
   # Everything below is fetched by OpenMS' CMake at configure time. Pinning it
   # here keeps the build offline and reproducible (required for homebrew-core).
