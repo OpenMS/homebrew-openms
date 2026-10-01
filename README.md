@@ -4,12 +4,12 @@ Nightly [Homebrew](https://brew.sh) bottles of [OpenMS](https://openms.de) built
 [`nightly`](https://github.com/OpenMS/OpenMS/tree/nightly) branch of OpenMS/OpenMS.
 
 ```sh
-brew install openms/openms/openms      # TOPP command-line tools (pulls in libopenms)
-brew install openms/openms/openms-gui  # TOPPView, TOPPAS, INIFileEditor
-brew install openms/openms/libopenms   # only the C++ library, e.g. to build against it
+brew tap openms/openms
+brew trust openms/openms               # required by Homebrew >= 6.0 for third-party taps
+brew install openms                    # TOPP command-line tools (pulls in libopenms)
+brew install openms-gui                # TOPPView, TOPPAS, INIFileEditor
+brew install libopenms                 # only the C++ library, e.g. to build against it
 ```
-
-Or `brew tap openms/openms` and then `brew install openms`.
 
 | Formula      | Contents                                                                 | Depends on            |
 | ------------ | ------------------------------------------------------------------------ | --------------------- |

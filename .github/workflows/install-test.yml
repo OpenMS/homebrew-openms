@@ -1,0 +1,32 @@
+# Installs the published bottles from the tap on Linux and macOS and runs a TOPP tool.
+name: install test
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/install-test.yml
+  schedule:
+    - cron: "0 6 * * *"
+
+permissions: {}
+
+jobs:
+  install:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: Homebrew/actions/setup-homebrew@1e34f2e2acaa766b7efacb8c26352e6abbb023f9 # 2026.09.13.1
+      - name: Tap and install
+        run: |
+          brew tap openms/openms
+          brew trust openms/openms
+          brew install openms/openms/openms
+      - name: Run a tool
+        run: |
+          openms_prefix="$(brew --prefix openms)"
+          export PATH="${openms_prefix}/bin:${PATH}"
+          FileInfo --help
