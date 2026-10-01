@@ -3,6 +3,9 @@ name: install test
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/install-test.yml
   schedule:
     - cron: "0 6 * * *"
 
