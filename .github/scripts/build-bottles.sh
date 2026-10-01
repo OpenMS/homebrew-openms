@@ -32,9 +32,11 @@ for formula in "$@"; do
 
   bottle=$(ls -t ./"${name}"--*.bottle*.tar.gz | head -n1)
 
-  # Verify the bottle itself (not the build keg) installs, links and passes the tests.
+  # Verify the bottle itself (not the build keg) installs, links and passes the tests. The
+  # dependencies are all installed already; without --ignore-dependencies, installing a local
+  # bottle file re-pours every one of them (~5 min for these trees).
   step brew uninstall --formula --force --ignore-dependencies "$formula"
-  step brew install "./${bottle#./}"
+  step brew install --ignore-dependencies "./${bottle#./}"
   step brew linkage --test "$formula"
   step brew install --formula --only-dependencies --include-test "$formula"
   step brew test --verbose "$formula"
