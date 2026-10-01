@@ -5,7 +5,7 @@ Nightly [Homebrew](https://brew.sh) bottles of [OpenMS](https://openms.de) built
 
 ```sh
 brew tap openms/openms
-brew trust openms/openms               # if your Homebrew requires trusting third-party taps
+brew trust openms/openms               # required by Homebrew >= 6.0 for third-party taps
 brew install openms                    # TOPP command-line tools (pulls in libopenms)
 brew install openms-gui                # TOPPView, TOPPAS, INIFileEditor
 brew install libopenms                 # only the C++ library, e.g. to build against it

@@ -23,7 +23,7 @@ jobs:
       - name: Tap and install
         run: |
           brew tap openms/openms
-          brew trust openms/openms || true
+          brew trust openms/openms
           brew install openms/openms/openms
       - name: Run a tool
         run: |
