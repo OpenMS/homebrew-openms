@@ -19,7 +19,10 @@ class OpenmsGui < Formula
   depends_on "openms/openms/libopenms"
   depends_on "openms/openms/openms" # TOPPView and TOPPAS run the TOPP tools
   depends_on "qtbase"
+  depends_on "qtdeclarative"
+  depends_on "qtpositioning"
   depends_on "qtsvg"
+  depends_on "qtwebchannel"
   depends_on "qtwebengine"
 
   on_macos do
@@ -52,9 +55,11 @@ class OpenmsGui < Formula
 
     return unless OS.mac?
 
-    # The applications are installed as bundles; make them callable from the shell, too.
+    # App bundles may not live in bin. prefix/Applications keeps the bundles' RPATH
+    # (@executable_path/../../../../lib) pointing at lib; wrappers make them callable.
     %w[TOPPView TOPPAS INIFileEditor].each do |app|
-      bin.write_exec_script bin/"#{app}.app/Contents/MacOS/#{app}"
+      (prefix/"Applications").install bin/"#{app}.app"
+      bin.write_exec_script prefix/"Applications/#{app}.app/Contents/MacOS/#{app}"
     end
   end
 
