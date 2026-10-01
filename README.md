@@ -27,8 +27,13 @@ Upgrading from the earlier all-in-one `openms` formula: `libopenms` takes over t
 
 ## How bottles are built
 
-Bottles are built with `brew test-bot` and published with `brew pr-upload` to GitHub Packages,
-the same tooling homebrew-core uses.
+Bottles are built with the same `brew` commands `brew test-bot` runs (`install --build-bottle`,
+`bottle --json`, `audit`, reinstall from the bottle, `linkage --test`, `test`; see
+[`build-bottles.sh`](.github/scripts/build-bottles.sh)) and published with `brew pr-upload` to
+GitHub Packages, like homebrew-core. `brew test-bot --only-formulae` itself is not used, because it
+uninstalls and reinstalls the whole dependency tree around every formula, which took about half of
+each CI run. The bottle downloads of the dependency trees are kept in the Actions cache, keyed on
+the exact dependency versions.
 
 - [`nightly.yml`](.github/workflows/nightly.yml): triggered by OpenMS/OpenMS after the `nightly`
   branch moves (`repository_dispatch`, type `openms-nightly`), with a daily fallback at 04:00 UTC
@@ -40,7 +45,7 @@ the same tooling homebrew-core uses.
   2. builds bottles on macOS and Linux ([`build.yml`](.github/workflows/build.yml));
   3. uploads them to `ghcr.io/openms/openms` and pushes the bottle commit to `main`.
 - [`tests.yml`](.github/workflows/tests.yml) / [`publish.yml`](.github/workflows/publish.yml):
-  the standard `brew tap-new` pull request flow (`brew test-bot`, then `brew pr-pull`) for
+  the standard `brew tap-new` pull request flow (build as above, then `brew pr-pull`) for
   manual formula changes.
 
 ### Compiler cache

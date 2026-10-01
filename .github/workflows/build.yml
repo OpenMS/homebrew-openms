@@ -1,5 +1,6 @@
-# Builds and tests bottles with `brew test-bot`, exactly like Homebrew does,
-# plus a persistent ccache so nightly rebuilds only recompile what changed.
+# Builds and tests bottles with the brew commands `brew test-bot` uses (see
+# .github/scripts/build-bottles.sh), plus persistent caches for ccache and the
+# Homebrew bottle downloads so nightly rebuilds only recompile what changed.
 name: build bottles
 
 on:
@@ -27,6 +28,10 @@ defaults:
 env:
   CCACHE_VERSION: 4.14.1
   HOMEBREW_NO_INSTALL_CLEANUP: 1
+  HOMEBREW_NO_AUTO_UPDATE: 1
+  HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
+  HOMEBREW_DEVELOPER: 1
+  DEFAULT_FORMULAE: openms/openms/libopenms openms/openms/openms openms/openms/openms-gui
 
 jobs:
   test-bot:
@@ -109,6 +114,33 @@ jobs:
 
       - run: '"${HOMEBREW_OPENMS_CCACHE}" --zero-stats'
 
+      - name: Resolve formulae
+        id: formulae
+        env:
+          FORMULAE: ${{ inputs.formulae }}
+        run: echo "list=${FORMULAE:-$DEFAULT_FORMULAE}" >> "$GITHUB_OUTPUT"
+
+      # Bottle downloads of the (large) dependency trees, keyed on the exact dependency versions.
+      - name: Compute Homebrew download cache key
+        id: downloads
+        env:
+          FORMULAE: ${{ steps.formulae.outputs.list }}
+        run: |
+          # shellcheck disable=SC2086
+          deps=$(brew deps --formula --include-build --include-test --full-name --union $FORMULAE | grep -v '^openms/openms/' || true)
+          # shellcheck disable=SC2086
+          brew ruby -e 'ARGV.each { |n| f = Formula[n]; puts "#{f.name}--#{f.pkg_version}" }' $deps | sort > "$RUNNER_TEMP/dep-versions.txt"
+          echo "dir=$(brew --cache)/downloads" >> "$GITHUB_OUTPUT"
+          echo "hash=$(shasum -a 256 "$RUNNER_TEMP/dep-versions.txt" | cut -c1-16)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore Homebrew downloads
+        id: restore-downloads
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.downloads.outputs.dir }}
+          key: brew-downloads-${{ matrix.os }}-${{ steps.downloads.outputs.hash }}
+          restore-keys: brew-downloads-${{ matrix.os }}-
+
       - name: Base64-encode GITHUB_TOKEN for HOMEBREW_DOCKER_REGISTRY_TOKEN
         id: base64-encode
         env:
@@ -118,19 +150,16 @@ jobs:
           echo "::add-mask::${base64_token}"
           echo "token=${base64_token}" >> "${GITHUB_OUTPUT}"
 
-      - name: brew test-bot --only-formulae
+      - name: Build, bottle and test
+        working-directory: ${{ steps.set-up-homebrew.outputs.repository-path }}
         env:
           HOMEBREW_DOCKER_REGISTRY_TOKEN: ${{ steps.base64-encode.outputs.token }}
-          FORMULAE: ${{ inputs.formulae }}
+          FORMULAE: ${{ steps.formulae.outputs.list }}
         run: |
-          # Named arguments are tested in separate passes, so a formula would not see its
-          # dependencies built earlier in the run; --testing-formulae tests them together
-          # (in dependency order), like homebrew-core CI does.
-          args=()
-          if [[ -n "$FORMULAE" ]]; then
-            args+=("--testing-formulae=$(tr -s ' ' ',' <<< "$FORMULAE")")
-          fi
-          brew test-bot --only-formulae --root-url=https://ghcr.io/v2/openms/openms ${args[@]+"${args[@]}"}
+          mkdir -p "$GITHUB_WORKSPACE" && cp .github/scripts/build-bottles.sh "$RUNNER_TEMP/"
+          cd "$GITHUB_WORKSPACE"
+          # shellcheck disable=SC2086
+          "$RUNNER_TEMP/build-bottles.sh" https://ghcr.io/v2/openms/openms $FORMULAE
 
       - name: ccache statistics
         if: always()
@@ -144,11 +173,38 @@ jobs:
           path: ${{ steps.ccache.outputs.dir }}
           key: ccache-${{ matrix.os }}-${{ github.run_id }}-${{ github.run_attempt }}
 
+      # Drop downloads of dependency versions no longer needed so the cache doesn't grow forever.
+      - name: Prune Homebrew downloads
+        if: always() && inputs.save-cache && steps.restore-downloads.outputs.cache-hit != 'true'
+        env:
+          DIR: ${{ steps.downloads.outputs.dir }}
+        run: |
+          set +x
+          shopt -s nullglob
+          for f in "$DIR"/*; do
+            base="${f##*/}"; base="${base#*--}"
+            keep=false
+            # OpenMS sources/resources: keep while recent (the source changes nightly).
+            if [[ "$base" == *[Oo]pen[Mm][Ss]* && -n "$(find "$f" -mtime -3)" ]]; then continue; fi
+            while read -r nv; do
+              n="${nv%%--*}"; v="${nv#*--}"
+              if [[ "$base" == "$n--$v"* || "$base" == "$n-$v"* ]]; then keep=true; break; fi
+            done < "$RUNNER_TEMP/dep-versions.txt"
+            $keep || rm -f "$f"
+          done
+          du -sh "$DIR" || true
+
+      - name: Save Homebrew downloads
+        if: always() && inputs.save-cache && steps.restore-downloads.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.downloads.outputs.dir }}
+          key: brew-downloads-${{ matrix.os }}-${{ steps.downloads.outputs.hash }}
+
       - name: Upload bottles as artifact
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: bottles_${{ matrix.os }}
           path: '*.bottle.*'
-          # test-bot ignores some failed steps outside pull requests; no bottle means failure.
           if-no-files-found: error

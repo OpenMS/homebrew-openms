@@ -1,5 +1,5 @@
 # Nightly: pin the OpenMS formulae (libopenms, openms, openms-gui) to the OpenMS `nightly` branch, build bottles
-# with `brew test-bot` and publish them with `brew pr-upload`, i.e. the same
+# with the `brew test-bot` build commands and publish them with `brew pr-upload`, i.e. the same
 # tooling Homebrew uses, minus the pull request round-trip.
 #
 # Triggered by OpenMS/OpenMS's "Update nightly from develop" workflow via
