@@ -27,5 +27,6 @@ jobs:
           brew install openms/openms/openms
       - name: Run a tool
         run: |
-          export PATH="$(brew --prefix openms)/bin:$PATH"
+          openms_prefix="$(brew --prefix openms)"
+          export PATH="${openms_prefix}/bin:${PATH}"
           FileInfo --help
