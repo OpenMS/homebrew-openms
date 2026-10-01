@@ -1,4 +1,4 @@
-# Nightly: pin Formula/openms.rb to the OpenMS `nightly` branch, build bottles
+# Nightly: pin the OpenMS formulae (libopenms, openms, openms-gui) to the OpenMS `nightly` branch, build bottles
 # with `brew test-bot` and publish them with `brew pr-upload`, i.e. the same
 # tooling Homebrew uses, minus the pull request round-trip.
 #
@@ -50,7 +50,7 @@ jobs:
           ref: main
           persist-credentials: true
 
-      - name: Pin formula to OpenMS nightly
+      - name: Pin formulae to OpenMS nightly
         id: bump
         env:
           GH_TOKEN: ${{ github.token }}
@@ -70,7 +70,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if ! git diff --quiet; then
-            git commit -am "openms ${VERSION}" -m "Built from OpenMS/OpenMS@${OPENMS_SHA}."
+            git commit -am "libopenms, openms, openms-gui ${VERSION}" -m "Built from OpenMS/OpenMS@${OPENMS_SHA}."
           fi
           git push --force origin "HEAD:refs/heads/${STAGING_BRANCH}"
           echo "ref=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
@@ -87,7 +87,7 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       ref: ${{ needs.bump.outputs.ref }}
-      formulae: openms/openms/openms
+      formulae: openms/openms/libopenms openms/openms/openms openms/openms/openms-gui
       save-cache: true
 
   publish:

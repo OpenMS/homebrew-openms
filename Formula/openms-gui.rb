@@ -1,5 +1,5 @@
-class Openms < Formula
-  desc "Command-line tools (TOPP) for LC-MS/MS data analysis"
+class OpenmsGui < Formula
+  desc "Graphical applications (TOPPView, TOPPAS, INIFileEditor) of OpenMS"
   homepage "https://openms.de/"
   # BEGIN nightly-source (managed by .github/scripts/bump-nightly.py)
   url "https://github.com/OpenMS/OpenMS/archive/e25ac614f495ce1e4933f46b41da18199eeba3ef.tar.gz"
@@ -16,8 +16,11 @@ class Openms < Formula
   # Built against libopenms, which must come from the very same source tarball.
   depends_on "boost" => :build
   depends_on "cmake" => :build
-  depends_on "nlohmann-json" => :build
   depends_on "openms/openms/libopenms"
+  depends_on "openms/openms/openms" # TOPPView and TOPPAS run the TOPP tools
+  depends_on "qtbase"
+  depends_on "qtsvg"
+  depends_on "qtwebengine"
 
   on_macos do
     depends_on "libomp"
@@ -37,9 +40,8 @@ class Openms < Formula
       -DENABLE_TOPP_TESTING=OFF
       -DENABLE_PIPELINE_TESTING=OFF
       -DCMAKE_INSTALL_RPATH=#{rpath};#{formula_opt_lib("openms/openms/libopenms")}
-      -DBUILD_TOPP_TOOLS=ON
-      -DWITH_GUI=OFF
-      -DUSE_EXTERNAL_JSON=ON
+      -DBUILD_TOPP_TOOLS=OFF
+      -DWITH_GUI=ON
     ]
     args << "-DOpenMP_ROOT=#{formula_opt_prefix("libomp")}" if OS.mac?
     args += ccache_args
@@ -47,6 +49,13 @@ class Openms < Formula
     system "cmake", "-S", ".", "-B", "build", *args, *std_cmake_args
     system "cmake", "--build", "build"
     system "cmake", "--install", "build"
+
+    return unless OS.mac?
+
+    # The applications are installed as bundles; make them callable from the shell, too.
+    %w[TOPPView TOPPAS INIFileEditor].each do |app|
+      bin.write_exec_script bin/"#{app}.app/Contents/MacOS/#{app}"
+    end
   end
 
   # Opt-in compiler cache for this tap's CI (see .github/workflows/tests.yml).
@@ -66,22 +75,14 @@ class Openms < Formula
   end
 
   test do
-    # The tools read their registry from HOMEBREW_PREFIX/share/OpenMS/TOOLS once linked.
+    ENV["QT_QPA_PLATFORM"] = "offscreen"
     ENV["OPENMS_TOOL_REGISTRY_PATH"] = share/"OpenMS/TOOLS"
-    assert_match "OpenMS Version", shell_output("#{bin}/OpenMSInfo")
+    assert_path_exists share/"OpenMS/TOOLS/OpenMS-GUI.tsv"
+    %w[TOPPView TOPPAS INIFileEditor].each do |app|
+      assert_predicate bin/app, :executable?
+    end
 
-    (testpath/"test.mgf").write <<~EOS
-      BEGIN IONS
-      TITLE=test
-      PEPMASS=500.25
-      CHARGE=2+
-      RTINSECONDS=60
-      100.1 10
-      200.2 20
-      300.3 30
-      END IONS
-    EOS
-    system bin/"FileConverter", "-in", "test.mgf", "-out", "test.mzML"
-    assert_match "Number of spectra: 1", shell_output("#{bin}/FileInfo -in test.mzML")
+    system bin/"ImageCreator", "-write_ini", "ImageCreator.ini"
+    assert_match "ImageCreator", (testpath/"ImageCreator.ini").read
   end
 end

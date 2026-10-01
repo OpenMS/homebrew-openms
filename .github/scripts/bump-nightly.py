@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
-"""Pin Formula/openms.rb to an OpenMS commit (normally the tip of the `nightly` branch).
+"""Pin the OpenMS formulae to an OpenMS commit (normally the tip of the `nightly` branch).
 
 Everything OpenMS would otherwise download at configure time (FetchContent
 dependencies, PeptDeep ONNX models) is read from OpenMS's own CMake files at that
 commit and rendered as Homebrew `resource` blocks, so the build runs offline and
 the pins always match what OpenMS expects.
 
-Usage: bump-nightly.py [--sha SHA] [--formula PATH]
+All formulae get the same source block (the application layers require the exact
+libopenms version they are built from); resource blocks are only rendered into
+formulae that have the nightly-resources markers (libopenms).
+
+Usage: bump-nightly.py [--sha SHA] [--formula PATH ...]
 Prints `changed=`, `version=` and `sha=` lines suitable for $GITHUB_OUTPUT.
 """
 
@@ -24,6 +28,7 @@ from pathlib import Path
 
 REPO = "OpenMS/OpenMS"
 BRANCH = "nightly"
+FORMULAE = ["Formula/libopenms.rb", "Formula/openms.rb", "Formula/openms-gui.rb"]
 # FetchContent names handed to CMake via FETCHCONTENT_SOURCE_DIR_<NAME>.
 FETCHCONTENT_DEPS = ["opentims", "pylmcf", "wnet", "wnetalign"]
 
@@ -81,6 +86,10 @@ def formula_field(text: str, field: str) -> str | None:
     return m.group(1) if m else None
 
 
+def has_markers(text: str, begin: str) -> bool:
+    return re.search(rf"^[ \t]*# {re.escape(begin)}", text, re.M) is not None
+
+
 def replace_between(text: str, begin: str, end: str, lines: list[str]) -> str:
     pattern = re.compile(
         rf"(^([ \t]*)# {re.escape(begin)}[^\n]*\n).*?(^[ \t]*# {re.escape(end)}[^\n]*\n)", re.S | re.M
@@ -96,16 +105,16 @@ def replace_between(text: str, begin: str, end: str, lines: list[str]) -> str:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--sha", default="", help="OpenMS commit to pin (default: tip of nightly)")
-    ap.add_argument("--formula", default="Formula/openms.rb")
+    ap.add_argument("--formula", action="append", help=f"formula to update (default: {' '.join(FORMULAE)})")
     args = ap.parse_args()
 
     sha, date = resolve_commit(args.sha or BRANCH)
-    formula = Path(args.formula)
-    text = formula.read_text()
+    formulae = {Path(f): Path(f).read_text() for f in (args.formula or FORMULAE)}
+    first = next(iter(formulae.values()))
 
-    if sha in (formula_field(text, "url") or ""):
+    if all(sha in (formula_field(t, "url") or "") for t in formulae.values()):
         print("changed=false")
-        print(f"version={formula_field(text, 'version')}")
+        print(f"version={formula_field(first, 'version')}")
         print(f"sha={sha}")
         return
 
@@ -115,17 +124,12 @@ def main() -> None:
 
     base = ".".join(cmake_set(top, f"OPENMS_PACKAGE_VERSION_{p}") for p in ("MAJOR", "MINOR", "PATCH"))
     version = f"{base}-pre.{date:%Y%m%d}"
-    if (formula_field(text, "version") or "").startswith(version):
+    if any((formula_field(t, "version") or "").startswith(version) for t in formulae.values()):
         # More than one build on the same day: disambiguate with the commit time.
         version = f"{base}-pre.{date:%Y%m%d.%H%M}"
 
     url = f"https://github.com/{REPO}/archive/{sha}.tar.gz"
-    text = replace_between(
-        text,
-        "BEGIN nightly-source",
-        "END nightly-source",
-        [f'url "{url}"', f'version "{version}"', f'sha256 "{sha256_of(url)}"'],
-    )
+    source = [f'url "{url}"', f'version "{version}"', f'sha256 "{sha256_of(url)}"']
 
     pins = fetchcontent_pins(ext)
     res: list[str] = []
@@ -144,12 +148,15 @@ def main() -> None:
         sys.exit("PeptDeep model and checksum lists differ in length")
     for model, digest in zip(models, hashes):
         res += [f'resource "{model}" do', f'  url "{model_url}/{model}"', f'  sha256 "{digest}"', "end", ""]
-    text = replace_between(text, "BEGIN nightly-resources", "END nightly-resources", res[:-1])
 
-    # Bottles belong to the previous commit; pr-upload writes a fresh block.
-    text = re.sub(r"^  bottle do\n.*?^  end\n\n", "", text, count=1, flags=re.S | re.M)
+    for path, text in formulae.items():
+        text = replace_between(text, "BEGIN nightly-source", "END nightly-source", source)
+        if has_markers(text, "BEGIN nightly-resources"):
+            text = replace_between(text, "BEGIN nightly-resources", "END nightly-resources", res[:-1])
+        # Bottles belong to the previous commit; pr-upload writes a fresh block.
+        text = re.sub(r"^  bottle do\n.*?^  end\n\n", "", text, count=1, flags=re.S | re.M)
+        path.write_text(text)
 
-    formula.write_text(text)
     print("changed=true")
     print(f"version={version}")
     print(f"sha={sha}")
