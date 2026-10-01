@@ -15,9 +15,9 @@ class Openms < Formula
 
   bottle do
     root_url "https://ghcr.io/v2/openms/openms"
-    rebuild 2
-    sha256 cellar: :any, arm64_tahoe:  "91b98e1b08ee94bec81963853b4cc4938a2ad518adbdf1a13b340cbaa2715f81"
-    sha256 cellar: :any, x86_64_linux: "2e91bc2606104a59d9db77c38a6b39839aabef61cc2b91df829aec4a3722775a"
+    rebuild 3
+    sha256 cellar: :any, arm64_tahoe:  "8bceae72c35529e66af24089aafe8644fb4b5d2f86b4945ca9b3cd14489dc5f8"
+    sha256 cellar: :any, x86_64_linux: "b4e89ae2f5fc8f114d4db1f4e53130569bad79bd4b014b627c0b4e47132350de"
   end
 
   keg_only "it installs about 150 tools with generic names (e.g. `FileInfo`) that clash with other formulae"
