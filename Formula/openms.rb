@@ -20,6 +20,8 @@ class Openms < Formula
     sha256 cellar: :any, x86_64_linux: "2e91bc2606104a59d9db77c38a6b39839aabef61cc2b91df829aec4a3722775a"
   end
 
+  keg_only "it installs about 150 tools with generic names (e.g. `FileInfo`) that clash with other formulae"
+
   # Built against libopenms, which must come from the very same source tarball.
   depends_on "boost" => :build
   depends_on "cmake" => :build
@@ -73,8 +75,7 @@ class Openms < Formula
   end
 
   test do
-    # The tools read their registry from HOMEBREW_PREFIX/share/OpenMS/TOOLS once linked.
-    ENV["OPENMS_TOOL_REGISTRY_PATH"] = share/"OpenMS/TOOLS"
+    # Keg-only: the tools find their registry relative to themselves (bin/../share/OpenMS/TOOLS).
     assert_match "OpenMS Version", shell_output("#{bin}/OpenMSInfo")
 
     (testpath/"test.mgf").write <<~EOS

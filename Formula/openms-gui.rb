@@ -49,7 +49,7 @@ class OpenmsGui < Formula
       -DENABLE_CLASS_TESTING=OFF
       -DENABLE_TOPP_TESTING=OFF
       -DENABLE_PIPELINE_TESTING=OFF
-      -DCMAKE_INSTALL_RPATH=#{rpath};#{formula_opt_lib("openms/openms/libopenms")}
+      -DCMAKE_INSTALL_RPATH=#{rpath(source: libexec/"bin")};#{formula_opt_lib("openms/openms/libopenms")}
       -DBUILD_TOPP_TOOLS=OFF
       -DWITH_GUI=ON
     ]
@@ -60,14 +60,30 @@ class OpenmsGui < Formula
     system "cmake", "--build", "build"
     system "cmake", "--install", "build"
 
-    return unless OS.mac?
+    # openms is keg-only, so lay the GUI out as a merged OpenMS installation in libexec, where the
+    # applications find the TOPP tools and both tool registries relative to themselves:
+    #   libexec/bin                  GUI tools plus links to all TOPP tools
+    #   libexec/share/OpenMS/TOOLS   OpenMS-GUI.tsv plus a link to OpenMS-TOPP.tsv
+    #   libexec/<App>.app (macOS)    bundles look in ../../../bin and ../../../share/OpenMS/TOOLS
+    # Only the GUI entry points are exposed in bin.
+    openms = Formula["openms/openms/openms"]
+    libexec.install bin
+    (libexec/"share/OpenMS").install share/"OpenMS/TOOLS"
+    (libexec/"share/OpenMS/TOOLS").install_symlink openms.opt_share/"OpenMS/TOOLS/OpenMS-TOPP.tsv"
+    (libexec/"bin").install_symlink openms.opt_bin.children
 
-    # App bundles may not live in bin. prefix/Applications keeps the bundles' RPATH
-    # (@executable_path/../../../../lib) pointing at lib; wrappers make them callable.
-    %w[TOPPView TOPPAS INIFileEditor].each do |app|
-      (prefix/"Applications").install bin/"#{app}.app"
-      bin.write_exec_script prefix/"Applications/#{app}.app/Contents/MacOS/#{app}"
+    apps = %w[TOPPView TOPPAS INIFileEditor]
+    apps.each do |app|
+      if OS.mac?
+        # App bundles may not live in bin; their RPATH (@executable_path/../../../../lib) still reaches lib.
+        libexec.install libexec/"bin/#{app}.app"
+        (prefix/"Applications").install_symlink libexec/"#{app}.app"
+        bin.write_exec_script libexec/"#{app}.app/Contents/MacOS/#{app}"
+      else
+        bin.write_exec_script libexec/"bin/#{app}"
+      end
     end
+    %w[ExecutePipeline ImageCreator].each { |tool| bin.write_exec_script libexec/"bin/#{tool}" }
   end
 
   # Opt-in compiler cache for this tap's CI (see .github/workflows/tests.yml).
@@ -86,13 +102,24 @@ class OpenmsGui < Formula
     %W[-DCMAKE_C_COMPILER_LAUNCHER=#{ccache} -DCMAKE_CXX_COMPILER_LAUNCHER=#{ccache}]
   end
 
+  def caveats
+    return unless OS.mac?
+
+    <<~EOS
+      To add the applications to Launchpad/Finder:
+        ln -sf #{opt_prefix}/Applications/*.app /Applications/
+    EOS
+  end
+
   test do
     ENV["QT_QPA_PLATFORM"] = "offscreen"
-    ENV["OPENMS_TOOL_REGISTRY_PATH"] = share/"OpenMS/TOOLS"
-    assert_path_exists share/"OpenMS/TOOLS/OpenMS-GUI.tsv"
-    %w[TOPPView TOPPAS INIFileEditor].each do |app|
+    assert_path_exists libexec/"share/OpenMS/TOOLS/OpenMS-GUI.tsv"
+    assert_path_exists libexec/"share/OpenMS/TOOLS/OpenMS-TOPP.tsv"
+    %w[TOPPView TOPPAS INIFileEditor ExecutePipeline ImageCreator].each do |app|
       assert_predicate bin/app, :executable?
     end
+    # TOPP tools are reachable from the GUI's tool directory.
+    assert_match "OpenMS Version", shell_output("#{libexec}/bin/OpenMSInfo")
 
     system bin/"ImageCreator", "-write_ini", "ImageCreator.ini"
     assert_match "ImageCreator", (testpath/"ImageCreator.ini").read

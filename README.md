@@ -14,8 +14,22 @@ Or `brew tap openms/openms` and then `brew install openms`.
 | Formula      | Contents                                                                 | Depends on            |
 | ------------ | ------------------------------------------------------------------------ | --------------------- |
 | `libopenms`  | libOpenMS, libOpenSwathAlgo, libOpenMS_CLI, headers, CMake package, `share/OpenMS` (incl. PeptDeep models) | — |
-| `openms`     | TOPP command-line tools, `share/OpenMS/TOOLS/OpenMS-TOPP.tsv`            | `libopenms`           |
-| `openms-gui` | libOpenMS_GUI, TOPPView, TOPPAS, INIFileEditor (app bundles on macOS, plus shell wrappers in `bin`), ExecutePipeline, ImageCreator | `libopenms`, `openms`, Qt |
+| `openms`     | TOPP command-line tools, `share/OpenMS/TOOLS/OpenMS-TOPP.tsv` (keg-only) | `libopenms`           |
+| `openms-gui` | libOpenMS_GUI, TOPPView, TOPPAS, INIFileEditor (app bundles on macOS), ExecutePipeline, ImageCreator; only these entry points are linked into `bin` | `libopenms`, `openms`, Qt |
+
+`openms` is keg-only: its ~150 tools have generic names (`FileInfo` clashes with leptonica's
+`fileinfo` on case-insensitive file systems) and are not linked into `HOMEBREW_PREFIX/bin`. To use
+them, add them to `PATH`:
+
+```sh
+export PATH="$(brew --prefix openms)/bin:$PATH"
+```
+
+They find their tool registry relative to themselves, so no other setup is needed. `openms-gui`
+lays out the GUI in `libexec` as a merged installation (`libexec/bin` holds the GUI tools plus
+links to all TOPP tools, `libexec/share/OpenMS/TOOLS` both registries), so TOPPView and TOPPAS
+find the TOPP tools without `openms` being linked. On macOS, link the apps with
+`ln -sf "$(brew --prefix openms-gui)"/Applications/*.app /Applications/`.
 
 The three formulae are built from the same OpenMS commit: `libopenms` with `BUILD_TOPP_TOOLS=OFF
 WITH_GUI=OFF`, the other two against the installed `libopenms` with
