@@ -123,8 +123,14 @@ jobs:
           HOMEBREW_DOCKER_REGISTRY_TOKEN: ${{ steps.base64-encode.outputs.token }}
           FORMULAE: ${{ inputs.formulae }}
         run: |
-          # shellcheck disable=SC2086
-          brew test-bot --only-formulae --root-url=https://ghcr.io/v2/openms/openms $FORMULAE
+          # Named arguments are tested in separate passes, so a formula would not see its
+          # dependencies built earlier in the run; --testing-formulae tests them together
+          # (in dependency order), like homebrew-core CI does.
+          args=()
+          if [[ -n "$FORMULAE" ]]; then
+            args+=("--testing-formulae=$(tr -s ' ' ',' <<< "$FORMULAE")")
+          fi
+          brew test-bot --only-formulae --root-url=https://ghcr.io/v2/openms/openms ${args[@]+"${args[@]}"}
 
       - name: ccache statistics
         if: always()
