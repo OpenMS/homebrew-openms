@@ -13,7 +13,7 @@ class Libopenms < Formula
     skip "Pinned to the OpenMS nightly branch by .github/workflows/nightly.yml"
   end
 
-  depends_on "cmake" => :build
+  depends_on "cmake" => [:build, :test]
   depends_on "apache-arrow"
   depends_on "boost"
   depends_on "eigen"
