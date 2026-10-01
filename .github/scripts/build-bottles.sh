@@ -6,6 +6,8 @@
 # Usage: build-bottles.sh <root-url> <formula>... (in dependency order)
 set -euo pipefail
 
+export HOMEBREW_NO_AUTOREMOVE=1
+
 root_url="$1"
 shift
 
@@ -32,11 +34,11 @@ for formula in "$@"; do
 
   bottle=$(ls -t ./"${name}"--*.bottle*.tar.gz | head -n1)
 
-  # Verify the bottle itself (not the build keg) installs, links and passes the tests. The
-  # dependencies are all installed already; without --ignore-dependencies, installing a local
-  # bottle file re-pours every one of them (~5 min for these trees).
+  # Verify the bottle itself (not the build keg) installs, links and passes the tests.
+  # HOMEBREW_NO_AUTOREMOVE keeps the uninstall from removing (and the install from re-pouring)
+  # the whole dependency tree.
   step brew uninstall --formula --force --ignore-dependencies "$formula"
-  step brew install --ignore-dependencies "./${bottle#./}"
+  step brew install "./${bottle#./}"
   step brew linkage --test "$formula"
   step brew install --formula --only-dependencies --include-test "$formula"
   step brew test --verbose "$formula"
