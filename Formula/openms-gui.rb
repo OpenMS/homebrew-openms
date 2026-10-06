@@ -2,21 +2,15 @@ class OpenmsGui < Formula
   desc "Graphical applications (TOPPView, TOPPAS, INIFileEditor) of OpenMS"
   homepage "https://openms.de/"
   # BEGIN nightly-source (managed by .github/scripts/bump-nightly.py)
-  url "https://github.com/OpenMS/OpenMS/archive/f139c9bbf97149ceabb2111ee5f153eaa571e80a.tar.gz"
-  version "3.7.0-pre.20261004"
-  sha256 "4743acdab20f75a124a6de60215412927ef20c616ee27c02e5d3238279150e56"
+  url "https://github.com/OpenMS/OpenMS/archive/fe7b9cc0e51cd4ac85b96f17ad2c3493d004a4db.tar.gz"
+  version "3.7.0-pre.20261005"
+  sha256 "90bd868116c89dad33c62330ab174b610b11f2b8e6878b5087c69cdd9c9bfb5b"
   # END nightly-source
   license "BSD-3-Clause"
   head "https://github.com/OpenMS/OpenMS.git", branch: "develop"
 
   livecheck do
     skip "Pinned to the OpenMS nightly branch by .github/workflows/nightly.yml"
-  end
-
-  bottle do
-    root_url "https://ghcr.io/v2/openms/openms"
-    sha256 cellar: :any, arm64_tahoe:  "d6157c4a97387a6d7092afe9c2b96ea78cb64cfeda6a53eb3a958c9f86997211"
-    sha256 cellar: :any, x86_64_linux: "229a7639a8ee974b430f0390527ef57b9b1b6b8a218ffd895042d2b0320f22ed"
   end
 
   # Built against libopenms, which must come from the very same source tarball.
