@@ -13,6 +13,12 @@ class OpenmsGui < Formula
     skip "Pinned to the OpenMS nightly branch by .github/workflows/nightly.yml"
   end
 
+  bottle do
+    root_url "https://ghcr.io/v2/openms/openms"
+    sha256 cellar: :any, arm64_tahoe:  "64a745a46b572903015a942be6b5c3a7f783d40cd46acfead9877cde33332738"
+    sha256 cellar: :any, x86_64_linux: "8d66ea79646d3279d65320d13bfe33f10c38ad4e109f53d1ae49bc977c9bf556"
+  end
+
   # Built against libopenms, which must come from the very same source tarball.
   depends_on "boost" => :build
   depends_on "cmake" => :build
