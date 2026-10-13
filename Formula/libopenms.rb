@@ -2,21 +2,15 @@ class Libopenms < Formula
   desc "C++ library for LC-MS/MS data analysis"
   homepage "https://openms.de/"
   # BEGIN nightly-source (managed by .github/scripts/bump-nightly.py)
-  url "https://github.com/OpenMS/OpenMS/archive/dac959035b2f8187b18fd882df931ca1f6a7f5e0.tar.gz"
-  version "3.7.0-pre.20261011"
-  sha256 "d44b227f444f6d8f3dc68b2d87c7524fd69cceba0c5e622e59ff54c1f2af8e32"
+  url "https://github.com/OpenMS/OpenMS/archive/c9c1497994bdf8f76af2f3afa17eeef76f6cd555.tar.gz"
+  version "3.7.0-pre.20261012"
+  sha256 "a06d44b21bc34770ea1d6d7cc4ed06cf5746490a1afddd560cfc030bfca1ba32"
   # END nightly-source
   license "BSD-3-Clause"
   head "https://github.com/OpenMS/OpenMS.git", branch: "develop"
 
   livecheck do
     skip "Pinned to the OpenMS nightly branch by .github/workflows/nightly.yml"
-  end
-
-  bottle do
-    root_url "https://ghcr.io/v2/openms/openms"
-    sha256 arm64_tahoe:  "01412f7eb2c6842a8f704cf46f71def23013cd805792bd18b9a2bde8f7f70909"
-    sha256 x86_64_linux: "b730d858bf8512ac99f5ece4be0a31dbc41d35e21af26f5ba0d700994e7d87dc"
   end
 
   depends_on "cmake" => [:build, :test]
