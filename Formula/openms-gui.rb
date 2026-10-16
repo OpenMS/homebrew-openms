@@ -2,21 +2,15 @@ class OpenmsGui < Formula
   desc "Graphical applications (TOPPView, TOPPAS, INIFileEditor) of OpenMS"
   homepage "https://openms.de/"
   # BEGIN nightly-source (managed by .github/scripts/bump-nightly.py)
-  url "https://github.com/OpenMS/OpenMS/archive/99c918c422e42aeee3b74d8d3a9ab977346c74e8.tar.gz"
-  version "3.7.0-pre.20261014"
-  sha256 "ad163098caac301d267bdb79d7cf8bd54d2cf26c4d63d7b7889aa365e7c047d0"
+  url "https://github.com/OpenMS/OpenMS/archive/6c57333fa8ec51b964fec8c2dffb8f1b1b298910.tar.gz"
+  version "3.7.0-pre.20261015"
+  sha256 "e75f505ad317b16f968d3d4a43e94f9cf8b9dddb9e32614229428a28f1bd35f4"
   # END nightly-source
   license "BSD-3-Clause"
   head "https://github.com/OpenMS/OpenMS.git", branch: "develop"
 
   livecheck do
     skip "Pinned to the OpenMS nightly branch by .github/workflows/nightly.yml"
-  end
-
-  bottle do
-    root_url "https://ghcr.io/v2/openms/openms"
-    sha256 cellar: :any, arm64_tahoe:  "0b9cd3cf9f6731f65f0f8202e535fca07c4fc8e61df9cf6b770860382d7e1065"
-    sha256 cellar: :any, x86_64_linux: "3c4de96d4ea4dd9eda17e8173d9ce5ec9f548fed81e9bd801a937766957da882"
   end
 
   # Built against libopenms, which must come from the very same source tarball.
