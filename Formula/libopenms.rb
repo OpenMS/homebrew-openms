@@ -13,6 +13,12 @@ class Libopenms < Formula
     skip "Pinned to the OpenMS nightly branch by .github/workflows/nightly.yml"
   end
 
+  bottle do
+    root_url "https://ghcr.io/v2/openms/openms"
+    sha256 arm64_tahoe:  "e2e54e3d07aeff53999f080ac1f7001a131dbfca655f9da3194fecbdf48b17eb"
+    sha256 x86_64_linux: "b0f4e2b72dd0cf158b163fa691f2d2f28f995bedb7cfb9cb3a20b219eb2b0c88"
+  end
+
   depends_on "cmake" => [:build, :test]
   depends_on "apache-arrow"
   depends_on "boost"
