@@ -2,21 +2,15 @@ class Openms < Formula
   desc "Command-line tools (TOPP) for LC-MS/MS data analysis"
   homepage "https://openms.de/"
   # BEGIN nightly-source (managed by .github/scripts/bump-nightly.py)
-  url "https://github.com/OpenMS/OpenMS/archive/8ab290cc80e1150986b37530ac02dee6d8d6ce58.tar.gz"
-  version "3.7.0-pre.20261021"
-  sha256 "d18a417b737eecdd165f2653bc9301e670c9310945e5008d4b7899046539cfc5"
+  url "https://github.com/OpenMS/OpenMS/archive/5edf83948816aee51225949dd0e613bd40f69c47.tar.gz"
+  version "3.7.0-pre.20261022"
+  sha256 "f21209aa58a174389a45403e02eaebbdfa68b08863e9604bab16bc8380b0ae40"
   # END nightly-source
   license "BSD-3-Clause"
   head "https://github.com/OpenMS/OpenMS.git", branch: "develop"
 
   livecheck do
     skip "Pinned to the OpenMS nightly branch by .github/workflows/nightly.yml"
-  end
-
-  bottle do
-    root_url "https://ghcr.io/v2/openms/openms"
-    sha256 cellar: :any, arm64_tahoe:  "19e66776d56ba50f1dac7078000541e0463211f424df8192769996dc4b441e13"
-    sha256 cellar: :any, x86_64_linux: "09be5b650441709cc7e98d3ff32b570ba6d0949833686438cc7ecb25be7d433e"
   end
 
   keg_only "it installs about 150 tools with generic names (e.g. `FileInfo`) that clash with other formulae"
