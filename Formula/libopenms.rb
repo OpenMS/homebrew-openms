@@ -25,6 +25,7 @@ class Libopenms < Formula
   depends_on "eigen"
   depends_on "highs"
   depends_on "libsvm"
+  depends_on "libxml2"
   depends_on "libzip"
   depends_on "nlohmann-json"
   depends_on "onnxruntime"
@@ -35,7 +36,6 @@ class Libopenms < Formula
 
   uses_from_macos "bzip2"
   uses_from_macos "curl"
-  uses_from_macos "libxml2"
 
   on_macos do
     depends_on "libomp"
