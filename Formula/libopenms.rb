@@ -3,7 +3,7 @@ class Libopenms < Formula
   homepage "https://openms.de/"
   # BEGIN nightly-source (managed by .github/scripts/bump-nightly.py)
   url "https://github.com/OpenMS/OpenMS/archive/d99cf103c65f5b5e481d9ce1820ec3c09b89c585.tar.gz"
-  version "3.7.0-pre.20261109.1337"
+  version "3.7.0-pre.20261109.1357"
   sha256 "df2b7aeca26828f8db4d8701460a65e1235e31a82ae09831aa464989a2b5341b"
   # END nightly-source
   license "BSD-3-Clause"

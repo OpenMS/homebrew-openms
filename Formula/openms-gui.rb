@@ -3,9 +3,9 @@ class OpenmsGui < Formula
   homepage "https://openms.de/"
   # The GUI layer of OpenMS, built from OpenMS-TOPP-GUI against the installed libopenms.
   # BEGIN nightly-source (managed by .github/scripts/bump-nightly.py)
-  url "https://github.com/OpenMS/OpenMS-TOPP-GUI/archive/dd2998df4c5acec6b1c0dc1f693b2d8f5ecbe0b1.tar.gz"
-  version "3.7.0-pre.20261109.1337"
-  sha256 "0ca45355fe86f5e9137318c9c0acd53288a14bdad128a5c0f17eed6ff81f7a4d"
+  url "https://github.com/OpenMS/OpenMS-TOPP-GUI/archive/82d48519830470551a2aa972aaba8339cae6c8a3.tar.gz"
+  version "3.7.0-pre.20261109.1357"
+  sha256 "0da73a24a20e9bd1addbcd5cff85e9489b08312346adb8f6f9939827e8525aa7"
   # END nightly-source
   license "BSD-3-Clause"
   head "https://github.com/OpenMS/OpenMS-TOPP-GUI.git", branch: "develop"
