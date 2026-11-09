@@ -144,12 +144,20 @@ def main() -> None:
     if any(p.name in GUI_FORMULAE for p in formulae) and gui_base != base:
         sys.exit(f"{GUI_REPO}@{gui_sha} is version {gui_base}, but {REPO}@{sha} is {base}; "
                  f"the GUI layer needs an OpenMS of exactly its version (pass --gui-sha)")
-    # The newer of both commits dates the version, so a new GUI commit gives a new version too.
+    # The newer of both commits dates the version, so a new GUI commit usually gives a new
+    # version too.
     date = max(date, gui_date)
+    existing = {formula_field(t, "version") or "" for t in formulae.values()}
     version = f"{base}-pre.{date:%Y%m%d}"
-    if any((formula_field(t, "version") or "").startswith(version) for t in formulae.values()):
+    if any(v.startswith(version) for v in existing):
         # More than one build on the same day: disambiguate with the commit time.
         version = f"{base}-pre.{date:%Y%m%d.%H%M}"
+    # A new pin must always change the version, or `brew upgrade` would not pick it up. The
+    # commit time stays the same when only a commit older than the other one changed (e.g. a
+    # GUI commit dated before the pinned OpenMS commit): count up in that case.
+    counters = [int(m.group(1)) for v in existing if (m := re.fullmatch(rf"{re.escape(version)}\.(\d+)", v))]
+    if version in existing or counters:
+        version = f"{version}.{max(counters, default=0) + 1}"
 
     def source_block(repo: str, commit: str) -> list[str]:
         url = f"https://github.com/{repo}/archive/{commit}.tar.gz"
