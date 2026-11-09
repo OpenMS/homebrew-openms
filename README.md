@@ -1,7 +1,9 @@
 # OpenMS Homebrew tap
 
 Nightly [Homebrew](https://brew.sh) bottles of [OpenMS](https://openms.de) built from the
-[`nightly`](https://github.com/OpenMS/OpenMS/tree/nightly) branch of OpenMS/OpenMS.
+[`nightly`](https://github.com/OpenMS/OpenMS/tree/nightly) branch of OpenMS/OpenMS and, for the
+GUI, the [`develop`](https://github.com/OpenMS/OpenMS-TOPP-GUI/tree/develop) branch of
+OpenMS/OpenMS-TOPP-GUI.
 
 ```sh
 brew tap openms/openms
@@ -31,10 +33,13 @@ links to all TOPP tools, `libexec/share/OpenMS/TOOLS` both registries), so TOPPV
 find the TOPP tools without `openms` being linked. On macOS, link the apps with
 `ln -sf "$(brew --prefix openms-gui)"/Applications/*.app /Applications/`.
 
-The three formulae are built from the same OpenMS commit: `libopenms` with `BUILD_TOPP_TOOLS=OFF
-WITH_GUI=OFF`, the other two against the installed `libopenms` with
+`libopenms` and `openms` are built from the same OpenMS commit: `libopenms` with
+`BUILD_TOPP_TOOLS=OFF WITH_GUI=OFF`, `openms` against the installed `libopenms` with
 `OPENMS_USE_INSTALLED_LIBRARY=ON` ([OpenMS#10339](https://github.com/OpenMS/OpenMS/pull/10339)).
-Their versions must always match exactly. pyOpenMS is intentionally not packaged here.
+`openms-gui` is built from [OpenMS-TOPP-GUI](https://github.com/OpenMS/OpenMS-TOPP-GUI), the
+GUI layer that moved out of OpenMS for 3.7 ([OpenMS#10844](https://github.com/OpenMS/OpenMS/pull/10844)),
+against the installed `libopenms`; it requires an OpenMS of exactly its own version. All three
+formulae always carry the same version. pyOpenMS is intentionally not packaged here.
 
 Upgrading from the earlier all-in-one `openms` formula: `libopenms` takes over the library files
 (`link_overwrite`), so `brew upgrade openms` works without manual unlinking.
@@ -52,9 +57,10 @@ the exact dependency versions.
 - [`nightly.yml`](.github/workflows/nightly.yml): triggered by OpenMS/OpenMS after the `nightly`
   branch moves (`repository_dispatch`, type `openms-nightly`), with a daily fallback at 04:00 UTC
   and manual `workflow_dispatch`. It
-  1. pins all three formulae to the `nightly` commit
-     ([`bump-nightly.py`](.github/scripts/bump-nightly.py)): source tarball, version
-     `X.Y.Z-pre.YYYYMMDD`, and `resource`s for everything OpenMS' CMake would download
+  1. pins `libopenms` and `openms` to the `nightly` commit and `openms-gui` to the tip of
+     OpenMS-TOPP-GUI's `develop` ([`bump-nightly.py`](.github/scripts/bump-nightly.py)): source
+     tarballs, version `X.Y.Z-pre.YYYYMMDD` (date of the newer of both commits, so a new GUI
+     commit also gives a new version and rebuilds all three), and `resource`s for everything OpenMS' CMake would download
      (FetchContent deps, PeptDeep ONNX models; only `libopenms` needs them), read from OpenMS' CMake files at that commit;
   2. builds bottles on macOS and Linux ([`build.yml`](.github/workflows/build.yml));
   3. uploads them to `ghcr.io/openms/openms` and pushes the bottle commit to `main`.

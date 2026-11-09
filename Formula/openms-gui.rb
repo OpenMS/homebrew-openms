@@ -1,25 +1,20 @@
 class OpenmsGui < Formula
   desc "Graphical applications (TOPPView, TOPPAS, INIFileEditor) of OpenMS"
   homepage "https://openms.de/"
+  # The GUI layer of OpenMS, built from OpenMS-TOPP-GUI against the installed libopenms.
   # BEGIN nightly-source (managed by .github/scripts/bump-nightly.py)
-  url "https://github.com/OpenMS/OpenMS/archive/a335fa62457770d13684520a874e699ed81cb872.tar.gz"
-  version "3.7.0-pre.20261108"
-  sha256 "1e2de91f71df016404072a41259c04da48679db17926bd41327e72a909e96baf"
+  url "https://github.com/OpenMS/OpenMS-TOPP-GUI/archive/6f78eb232404b278dc677022e4b53211dea3c5d3.tar.gz"
+  version "3.7.0-pre.20261109"
+  sha256 "3723f74ca946daa251f35485c16028913a7540fc1c1bf84b20e5b3850edacfe6"
   # END nightly-source
   license "BSD-3-Clause"
-  head "https://github.com/OpenMS/OpenMS.git", branch: "develop"
+  head "https://github.com/OpenMS/OpenMS-TOPP-GUI.git", branch: "develop"
 
   livecheck do
-    skip "Pinned to the OpenMS nightly branch by .github/workflows/nightly.yml"
+    skip "Pinned to the OpenMS-TOPP-GUI develop branch by .github/workflows/nightly.yml"
   end
 
-  bottle do
-    root_url "https://ghcr.io/v2/openms/openms"
-    sha256 cellar: :any, arm64_tahoe:  "0cc992655f57906f83c6be3ea24c324b83e7a82802708ed8720a132a5ce6508b"
-    sha256 cellar: :any, x86_64_linux: "b9b02a4f2d9e52476d67decbf4cf132f9cbd0dcec2a6f0b8f74cbbf0c3e610f1"
-  end
-
-  # Built against libopenms, which must come from the very same source tarball.
+  # Built against libopenms, which must have exactly the version of OpenMS-TOPP-GUI.
   depends_on "boost" => :build
   depends_on "cmake" => :build
   depends_on "openms/openms/libopenms"
@@ -35,22 +30,21 @@ class OpenmsGui < Formula
     depends_on "libomp"
   end
 
+  # Until OpenMS 3.6 the core's shared data held the GUI style sheet.
+  link_overwrite "share/OpenMS/GUISTYLE/*"
+
   def install
     args = %W[
       -DCMAKE_BUILD_TYPE=Release
-      -DOPENMS_USE_INSTALLED_LIBRARY=ON
       -DOpenMS_DIR=#{formula_opt_lib("openms/openms/libopenms")}/cmake/OpenMS
-      -DPYOPENMS=OFF
       -DENABLE_DOCS=OFF
-      -DENABLE_UPDATE_CHECK=OFF
+      -DENABLE_TUTORIALS=OFF
       -DGIT_TRACKING=OFF
       -DHAS_XSERVER=OFF
       -DENABLE_CLASS_TESTING=OFF
       -DENABLE_TOPP_TESTING=OFF
       -DENABLE_PIPELINE_TESTING=OFF
       -DCMAKE_INSTALL_RPATH=#{rpath(source: libexec/"bin")};#{formula_opt_lib("openms/openms/libopenms")}
-      -DBUILD_TOPP_TOOLS=OFF
-      -DWITH_GUI=ON
     ]
     args << "-DOpenMP_ROOT=#{formula_opt_prefix("libomp")}" if OS.mac?
     args += ccache_args
