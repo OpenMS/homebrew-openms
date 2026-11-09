@@ -14,6 +14,12 @@ class OpenmsGui < Formula
     skip "Pinned to the OpenMS-TOPP-GUI develop branch by .github/workflows/nightly.yml"
   end
 
+  bottle do
+    root_url "https://ghcr.io/v2/openms/openms"
+    sha256 cellar: :any, arm64_tahoe:  "c9a9c0c9dad992cf28aac9393e7d7af66b82e5c8e68a2e46d2e2af2f0b437297"
+    sha256 cellar: :any, x86_64_linux: "3aa742dcceac180d55e35363a4f7ae7ea8e67e2da385f329d65a778f82634e9a"
+  end
+
   # Built against libopenms, which must have exactly the version of OpenMS-TOPP-GUI.
   depends_on "boost" => :build
   depends_on "cmake" => :build
