@@ -3,9 +3,9 @@ class OpenmsGui < Formula
   homepage "https://openms.de/"
   # The GUI layer of OpenMS, built from OpenMS-TOPP-GUI against the installed libopenms.
   # BEGIN nightly-source (managed by .github/scripts/bump-nightly.py)
-  url "https://github.com/OpenMS/OpenMS-TOPP-GUI/archive/6f78eb232404b278dc677022e4b53211dea3c5d3.tar.gz"
-  version "3.7.0-pre.20261109"
-  sha256 "3723f74ca946daa251f35485c16028913a7540fc1c1bf84b20e5b3850edacfe6"
+  url "https://github.com/OpenMS/OpenMS-TOPP-GUI/archive/dd2998df4c5acec6b1c0dc1f693b2d8f5ecbe0b1.tar.gz"
+  version "3.7.0-pre.20261109.1337"
+  sha256 "0ca45355fe86f5e9137318c9c0acd53288a14bdad128a5c0f17eed6ff81f7a4d"
   # END nightly-source
   license "BSD-3-Clause"
   head "https://github.com/OpenMS/OpenMS-TOPP-GUI.git", branch: "develop"
@@ -29,9 +29,6 @@ class OpenmsGui < Formula
   on_macos do
     depends_on "libomp"
   end
-
-  # Until OpenMS 3.6 the core's shared data held the GUI style sheet.
-  link_overwrite "share/OpenMS/GUISTYLE/*"
 
   def install
     args = %W[
