@@ -13,6 +13,12 @@ class Openms < Formula
     skip "Pinned to the OpenMS nightly branch by .github/workflows/nightly.yml"
   end
 
+  bottle do
+    root_url "https://ghcr.io/v2/openms/openms"
+    sha256 cellar: :any, arm64_tahoe:  "5bbac8a6395af601ff8f3d383db58322286547aff611144f69386e3cb2a8a8da"
+    sha256 cellar: :any, x86_64_linux: "fdaf5937b5762cfd0f9cde452feb94ff3e34ac7d761b9e604364fad06705e8bc"
+  end
+
   keg_only "it installs about 150 tools with generic names (e.g. `FileInfo`) that clash with other formulae"
 
   # Built against libopenms, which must come from the very same source tarball.
