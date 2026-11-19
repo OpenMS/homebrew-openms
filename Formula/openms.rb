@@ -2,21 +2,15 @@ class Openms < Formula
   desc "Command-line tools (TOPP) for LC-MS/MS data analysis"
   homepage "https://openms.de/"
   # BEGIN nightly-source (managed by .github/scripts/bump-nightly.py)
-  url "https://github.com/OpenMS/OpenMS/archive/6610795ba7f7ca0de7e2745573092662b002294f.tar.gz"
-  version "3.7.0-pre.20261117"
-  sha256 "e45981f75c9a20c40ea8fe884f6861c3ae4ea1528a7a65b94303733583578485"
+  url "https://github.com/OpenMS/OpenMS/archive/ab9612cd365af08b57d99e4988574865dfddf8d0.tar.gz"
+  version "3.7.0-pre.20261118"
+  sha256 "0807a6c9739de98e284094c1d4dec323298f1d083c2311d4598f7758695bc0fb"
   # END nightly-source
   license "BSD-3-Clause"
   head "https://github.com/OpenMS/OpenMS.git", branch: "develop"
 
   livecheck do
     skip "Pinned to the OpenMS nightly branch by .github/workflows/nightly.yml"
-  end
-
-  bottle do
-    root_url "https://ghcr.io/v2/openms/openms"
-    sha256 cellar: :any, arm64_tahoe:  "db06c4592d2d5afd9142b9605013516ba498eebcd7fd9bdd6b3022272ade18d1"
-    sha256 cellar: :any, x86_64_linux: "5d146c685ca7fac458e2a6a02e3d46bef34dcb98f6969ca07f406c5a2f54a028"
   end
 
   keg_only "it installs about 150 tools with generic names (e.g. `FileInfo`) that clash with other formulae"
