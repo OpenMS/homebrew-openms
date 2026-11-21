@@ -4,7 +4,7 @@ class OpenmsGui < Formula
   # The GUI layer of OpenMS, built from OpenMS-TOPP-GUI against the installed libopenms.
   # BEGIN nightly-source (managed by .github/scripts/bump-nightly.py)
   url "https://github.com/OpenMS/OpenMS-TOPP-GUI/archive/1c7ee164d1d69035544403656f1cc5afc08fbd76.tar.gz"
-  version "3.7.0-pre.20261119"
+  version "3.7.0-pre.20261120"
   sha256 "bc9b3d1d417a6db494bec40cd0e1593db6a66da052dc6d00ea7daf2ae0cb93c4"
   # END nightly-source
   license "BSD-3-Clause"
@@ -12,12 +12,6 @@ class OpenmsGui < Formula
 
   livecheck do
     skip "Pinned to the OpenMS-TOPP-GUI develop branch by .github/workflows/nightly.yml"
-  end
-
-  bottle do
-    root_url "https://ghcr.io/v2/openms/openms"
-    sha256 cellar: :any, arm64_tahoe:  "611a4ad5dfa01a608365c77c2c5a6f188885b24491571964392b6f9871e2ee8a"
-    sha256 cellar: :any, x86_64_linux: "95b30e4a108d89bf0d328e88dcbadd6b59fc225e77640a6bc00e36992a9c7c7f"
   end
 
   # Built against libopenms, which must have exactly the version of OpenMS-TOPP-GUI.
