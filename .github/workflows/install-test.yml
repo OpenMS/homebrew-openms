@@ -19,7 +19,7 @@ jobs:
         os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: Homebrew/actions/setup-homebrew@63a2d4d8d4193eab3e62b1b782ff3ab8408f5b29 # 2026.11.09.1
+      - uses: Homebrew/actions/setup-homebrew@61b401267256bb9c047d6d1481b176d5772a0ba7 # 2026.11.23.1
       - name: Tap and install
         run: |
           brew tap openms/openms
