@@ -38,6 +38,7 @@ class OpenmsGui < Formula
   end
 
   def install
+    gui_rpath = rpath(source: libexec/"bin")
     args = %W[
       -DCMAKE_BUILD_TYPE=Release
       -DOpenMS_DIR=#{formula_opt_lib("openms/openms/libopenms")}/cmake/OpenMS
@@ -48,7 +49,7 @@ class OpenmsGui < Formula
       -DENABLE_CLASS_TESTING=OFF
       -DENABLE_TOPP_TESTING=OFF
       -DENABLE_PIPELINE_TESTING=OFF
-      -DCMAKE_INSTALL_RPATH=#{rpath(source: libexec/"bin")};#{formula_opt_lib("openms/openms/libopenms")}
+      -DCMAKE_INSTALL_RPATH=#{gui_rpath};#{formula_opt_lib("openms/openms/libopenms")}
     ]
     args << "-DOpenMP_ROOT=#{formula_opt_prefix("libomp")}" if OS.mac?
     args += ccache_args
